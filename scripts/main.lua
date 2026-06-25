@@ -1,21 +1,43 @@
--- CONFIGURAÇÃO PRINCIPAL
-local CONFIG = {
-    ContaPrincipal = "NICK_DA_SUA_CONTA_PRINCIPAL",
-    WebhookUrl = "SUA_WEBHOOK_DO_DISCORD_AQUI"
+-- [[ DECKFLOW HUB - CORE ENGINE ]]
+if not game:IsLoaded() then game.Loaded:Wait() end
+
+-- Impedir dupla execução (Anti-Lag)
+if _G.DeckflowLoaded then 
+    print("[DECKFLOW] Já está executando!") 
+    return 
+end
+_G.DeckflowLoaded = true
+
+-- Inicialização Global de Variáveis e Configurações
+_G.Config = {
+    AutoFarm = false,
+    AutoFarmType = "Melee", -- Melee, Sword, Fruit
+    AutoClick = false,
+    FruitSniper = false,
+    ServerHopTime = 15,
+    AutoHop = false,
+    DistribuirStatus = false,
+    StatusAlvo = "Melee"
 }
 
-local nickAtual = game.Players.LocalPlayer.Name
+-- Sistema de Salvamento em Nuvem Local (JSON)
+local HttpService = game:GetService("HttpService")
+local NomeArquivo = "deckflow_pro_config.json"
 
--- Identifica o tipo de conta rodando o script
-if nickAtual == CONFIG.ContaPrincipal then
-    print("[LOG] Conta Principal detectada. Carregando funções de coleta...")
-    -- ATENÇÃO: Altere SEU_USER e SEU_REPO após subir para o GitHub
-    local principal = loadstring(game:HttpGet("https://githubusercontent.com"))
-    if principal then principal() end
-else
-    print("[LOG] Conta Bot detectada. Iniciando farm em segundo plano...")
-    -- Carrega o módulo do bot
-    _G.WebhookUrl = CONFIG.WebhookUrl
-    local bot = loadstring(game:HttpGet("https://githubusercontent.com"))
-    if bot then bot() end
+function _G.SalvarConfig()
+    if writefile then writefile(NomeArquivo, HttpService:JSONEncode(_G.Config)) end
 end
+
+function _G.CarregarConfig()
+    if readfile and isfile and isfile(NomeArquivo) then
+        local sucesso, dados = pcall(function() return HttpService:JSONDecode(readfile(NomeArquivo)) end)
+        if sucesso and dados then _G.Config = dados end
+    end
+end
+_G.CarregarConfig()
+
+-- Carrega os Módulos de Função e depois a Interface Visual de forma Assíncrona
+task.spawn(function()
+    loadstring(game:HttpGet("https://githubusercontent.com"))()
+    loadstring(game:HttpGet("https://githubusercontent.com"))()
+end)
